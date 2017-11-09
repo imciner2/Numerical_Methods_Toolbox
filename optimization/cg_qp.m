@@ -1,4 +1,4 @@
-function [ x_optimal, res ] = cg_qp(A, b, x0, varargin)
+function [ x_optimal, res, k ] = cg_qp(A, b, x0, varargin)
 %cg_qp Minimize the given quadratic function using the conjugate gradient method
 %
 % Minimize the unconstrained quadratic program 
@@ -11,6 +11,7 @@ function [ x_optimal, res ] = cg_qp(A, b, x0, varargin)
 % Outputs:
 %   x_final - The final (optimal) x iterate
 %   res - The L2-norm of the residual at each iteration
+%   k - The number of iterations it took to converge to the solution
 %
 % Inputs:
 %   A - The Hessian of the quadratic program
@@ -108,14 +109,19 @@ while ~STOP
     beta = ( r_n'*A*p ) / ( p'*A*p );
     p_n = -r_n + beta*p;
    
-    % Save the residual distance
-    res(k+1) = norm( r, 2 );
-    
     % Save the new variables for the next loop
     x = x_n;
     r = r_n;
     p = p_n;
 
+    % Save the residual distance
+    res(k+1) = norm( r_n, 2 );
+    
+    % Check the tolerance, and if met then stop
+    if ( tolFunc(x, r ) )
+        STOP = 1;
+    end
+    
     % Update the iteration counter
     k = k + 1;
     
@@ -126,15 +132,13 @@ while ~STOP
         STOP = 1;
     end
     
-    % Check the tolerance, and if met then stop
-    if ( tolFunc(x, r ) )
-        STOP = 1;
-    end
 end
 
 
 %% Output the final point
 res = res(1:k);
 x_optimal = x;
+
+k = k-1;    % The iteration count is 1 less than k at the end
 
 end
