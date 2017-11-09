@@ -1,4 +1,4 @@
-function [ x_final, x_inter, res, r_inter ] = cg_qp(A, b, x0, varargin)
+function [ x_optimal, res ] = cg_qp(A, b, x0, varargin)
 %cg_qp Minimize the given quadratic function using the conjugate gradient method
 %
 % Minimize the unconstrained quadratic program 
@@ -10,9 +10,7 @@ function [ x_final, x_inter, res, r_inter ] = cg_qp(A, b, x0, varargin)
 %
 % Outputs:
 %   x_final - The final (optimal) x iterate
-%   x_inter - All the intermediate iterates (in column vectors)
 %   res - The L2-norm of the residual at each iteration
-%   r_inter - ALl the intermediate residuals (in column vectors)
 %
 % Inputs:
 %   A - The Hessian of the quadratic program
@@ -85,8 +83,6 @@ if ( ~exist('tolFunc', 'var') )
 end
 
 % Pre-allocate the arrays
-x_inter = zeros(numVars, MAX_ITER);
-r_inter = zeros(numVars, MAX_ITER);
 res = zeros(1, MAX_ITER);
 
 % Setup the initial variables
@@ -95,8 +91,6 @@ r = A*x - b;
 p = -r;
 
 res(1) = norm( r, 2);
-x_inter(:, 1) = x;
-r_inter(:, 1) = r;
 
 k = 1;
 
@@ -107,24 +101,27 @@ while ~STOP
     alpha = -( r'*p ) / ( p'*A*p );
  
     % Compute the next point and residual
-    x = x + alpha*p;
-    r = A*x - b;
-    
-    % Save the intermediate results
-    x_inter(:, k+1) = x;
-    r_inter(:, k+1) = r;
+    x_n = x + alpha*p;
+    r_n = A*x_n - b;
     
     % Compute the next direction
-    beta = ( r'*A*p ) / ( p'*A*p );
-    p = -r + beta*p;
+    beta = ( r_n'*A*p ) / ( p'*A*p );
+    p_n = -r_n + beta*p;
    
     % Save the residual distance
-    res(k+1) = norm( r );
+    res(k+1) = norm( r, 2 );
+    
+    % Save the new variables for the next loop
+    x = x_n;
+    r = r_n;
+    p = p_n;
+
     % Update the iteration counter
     k = k + 1;
     
     % Stop after the max number of iterations
-    if ( k == (MAX_ITER+1) )
+    % k starts at 1, then should go for MAX_ITER, stopping once it is hit
+    if ( k == (MAX_ITER+2) )
         warning('Maximum interations reached before tolerance');
         STOP = 1;
     end
@@ -137,9 +134,7 @@ end
 
 
 %% Output the final point
-x_inter = x_inter(:, 1:k);
-r_inter = r_inter(:, 1:k);
-res = res(:, 1:k);
-x_final = x;
+res = res(1:k);
+x_optimal = x;
 
 end
