@@ -23,7 +23,7 @@ function [ x_optimal, res, k ] = cg_qp(A, b, x0, varargin)
 %                     Since this uses the Conjugate Gradient method, the
 %                     number of iterations must be less than or equal to
 %                     the number of variables in the problem.
-%                     The default is the number of variables.
+%                     The default is to not have an iteration limit
 %
 %   'ToleranceFunction' - Specify a custom function to use to compute if
 %                         the solution is within tolerance. It must have
@@ -39,11 +39,12 @@ function [ x_optimal, res, k ] = cg_qp(A, b, x0, varargin)
 %
 % Created by: Ian McInerney
 % Created on: November 3, 2017
-% Version: 1.0
-% Last Modified: November 3, 2017
+% Version: 1.1
+% Last Modified: November 15, 2017
 %
 % Revision History:
 %   1.0 - Initial Release
+%   1.1 - Modified iteration limiting condition
 
 % Make sure the number of arguments is correct
 numArgs = length(varargin);
@@ -54,8 +55,8 @@ end
 % Determine the number of variables in the problem
 numVars = length(x0);
 
-% Default tolerance and number of iterations
-MAX_ITER = numVars;
+% Default tolerance and no cap on the number of iterations
+MAX_ITER = 0;
 TOL = 1e-4;
 
 % Parse the arguments
@@ -64,10 +65,6 @@ if (numArgs > 0)
         switch( varargin{i} )
         case 'MaxIterations'
             MAX_ITER = varargin{i+1};
-            if (MAX_ITER > (numVars+1))
-                warning('Requested more iterations than variables, ignoring request');
-                MAX_ITER = numVars;
-            end
             
         case 'Tolerance'
             TOL = varargin{i+1};
@@ -125,9 +122,9 @@ while ~STOP
     % Update the iteration counter
     k = k + 1;
     
-    % Stop after the max number of iterations
+    % Stop after the max number of iterations if it is set
     % k starts at 1, then should go for MAX_ITER, stopping once it is hit
-    if ( k == (MAX_ITER+2) )
+    if ( (MAX_ITER ~= 0) && (k == (MAX_ITER+2) ) )
         warning('Maximum interations reached before tolerance');
         STOP = 1;
     end
