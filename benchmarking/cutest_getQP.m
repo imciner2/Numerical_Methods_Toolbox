@@ -6,10 +6,13 @@ function [ Q, c, Aeq, beq, Ale, ble, ub, lb ] = cutest_getQP( )
 %
 %   min x'Qx + c'x
 %   s.t. 
-%       Aeq*x= b
+%       Aeq*x= beq
 %       Ale*x <= ble
 %
 %       lb <= x <= ub
+%
+% Usage:
+%   [Q, c, Aeq, beq, Ale, ble, ub, lb] = cutest_getQP()
 %
 % Outputs:
 %   Q   - The quadratic term matrix
