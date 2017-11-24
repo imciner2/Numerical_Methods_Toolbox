@@ -31,9 +31,12 @@ cd $PROBLEM_PATH
 
 # Check to see if the .SIF file already exists in the directory
 if [ ! -e $PROBLEM_SIF ]; then
+  echo Problem not downloaded, downloading now
   # The .SIF file isn't here, get it from the web
   URL="ftp://ftp.numerical.rl.ac.uk/pub/cuter/marosmeszaros/$PROBLEM_SIF"
   wget $URL
+else
+  echo Problem already downloaded
 fi
 
 cd $CURR_DIR
@@ -45,6 +48,7 @@ cd $CURR_DIR
 PROBLEM_TAR="$PROBLEM_BASE.tar.gz"
 
 # Move the tar into the active problem directory and remove existing problems
+echo Extracting problem into active problem directory
 mkdir -p $ACTIVE_PATH
 cd $ACTIVE_PATH
 rm -f *

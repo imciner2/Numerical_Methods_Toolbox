@@ -1,4 +1,4 @@
-function [ Q, c, Aeq, beq, Ale, ble, ub, lb ] = cutest_getQP( )
+function [ Q, c, Aeq, beq, Ale, ble, ub, lb, x0, mu0 ] = cutest_getQP( )
 %CUTEST_GETQP Get the QP representation of a CUTEst problem
 %
 % This function will return the QP representation of the CUTEst problem.
@@ -12,7 +12,7 @@ function [ Q, c, Aeq, beq, Ale, ble, ub, lb ] = cutest_getQP( )
 %       lb <= x <= ub
 %
 % Usage:
-%   [Q, c, Aeq, beq, Ale, ble, ub, lb] = cutest_getQP()
+%   [Q, c, Aeq, beq, Ale, ble, ub, lb, x0, mu0] = cutest_getQP()
 %
 % Outputs:
 %   Q   - The quadratic term matrix
@@ -23,15 +23,18 @@ function [ Q, c, Aeq, beq, Ale, ble, ub, lb ] = cutest_getQP( )
 %   ble - The constant vector for the linear inequality constraints
 %   ub  - The upper bounds on the variables
 %   lb  - The lower bounds on the variables
+%   x0  - Initial guess for x
+%   mu0 - Initial geuss for mu
 %
 %
 % Created by: Ian McInerney
 % Created on: November 15, 2017
-% Version: 1.0
-% Last Modified: November 16, 2017
+% Version: 1.1
+% Last Modified: November 24, 2017
 %
 % Revision History:
 %   1.0 - Initial Release
+%   1.1 - Added initial variable output
 
 
 %% Make sure the cutest problem exists on the path
@@ -86,6 +89,11 @@ ble = [ble;
 %% Get the upper and lower bounds for the variables
 ub = Problem.bu;
 lb = Problem.bl;
+
+
+%% Get the initial guesses for the variables
+x0 = Problem.x;
+mu0 = Problem.v;
 
 
 %% Terminate the CUTEst problem before exiting

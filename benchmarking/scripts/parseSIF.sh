@@ -35,6 +35,7 @@ CURR_DIR=$(pwd)
 PROBLEM_TAR="$PROBLEM_BASE.tar.gz"
 if [ ! -e $PROBLEM_PATH/$PROBLEM_TAR ]; then
   # The tar archive isn't here, create it
+  echo Archive containing problem does not exist, compiling problem
 
   # Navigate to the active problem directory
   cd $ACTIVE_PATH
@@ -50,5 +51,6 @@ if [ ! -e $PROBLEM_PATH/$PROBLEM_TAR ]; then
   rm -f $PROBLEM_SIF
   tar -c * -f $PROBLEM_TAR
   cp $PROBLEM_TAR $CURR_DIR/$PROBLEM_PATH
-
+else
+  echo Problem already compiled
 fi
