@@ -31,10 +31,11 @@ function [ QP ] = benchmark_fetch_marosmeszaros( problemName )
 % Created by: Ian McInerney
 % Created on: November 24, 2017
 % Version: 1.0
-% Last Modified: November 24, 2017
+% Last Modified: November 28, 2017
 %
 % Revision History:
 %   1.0 - Initial Release
+%   1.1 - Modified to use generic SIF scripts
 
 disp(['Fetching problem ', upper(problemName)]);
 
@@ -58,7 +59,7 @@ end
 %% Call the script to get the problem
 disp('Problem not converted, calling conversion scripts');
 cd('scripts');
-system(['./getMarosMeszaros.sh ', problemName]);
+system(['./getSIF.sh ', problemName, ' marosmeszaros ftp://ftp.numerical.rl.ac.uk/pub/cuter/marosmeszaros']);
 cd('../');
 
 %% Navigate to the active directory for the problem, get it, and save it
