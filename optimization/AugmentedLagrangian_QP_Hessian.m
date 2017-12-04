@@ -1,4 +1,4 @@
-classdef AugmentedLagrangian_Hessian
+classdef AugmentedLagrangian_QP_Hessian
     
     properties
         A
@@ -6,15 +6,30 @@ classdef AugmentedLagrangian_Hessian
         rho
     end
     methods
-        function obj = AugmentedLagrangian_Hessian(A, C, rho)
+        function obj = AugmentedLagrangian_QP_Hessian(A, C, rho)
             obj.A = A;
             obj.C = C;
             obj.rho = rho;
         end
         
+        function res = value(a)
+            % Evaluate the Hessian matrix
+            res = a.A + a.rho.*a.C'*a.C;
+        end
+        
+        function res = transpose(a)
+            % Compute the transpose of the Hessian
+            res = AugmentedLagrangian_QP_Hessian( (a.A).', (a.C), a.rho);
+        end
+        
+        function res = ctranspose(a)
+            % Compute the conjugate transpose of the Hessian
+            res = AugmentedLagrangian_QP_Hessian( (a.A)', (a.C), a.rho);
+        end
+        
         function res = mtimes(a, b)
-            leftType = isa(a, 'AugmentedLagrangian_Hessian');
-            rightType = isa(b, 'AugmentedLagrangian_Hessian');
+            leftType = isa(a, 'AugmentedLagrangian_QP_Hessian');
+            rightType = isa(b, 'AugmentedLagrangian_QP_Hessian');
             
             if ( leftType && ~rightType )
                 % Left multiply a vector by the Hessian
