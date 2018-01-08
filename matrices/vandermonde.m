@@ -36,7 +36,7 @@ if (nargin == 3)
     switch( varargin{1} )
         case 'Chebyshev'
             poly = @chebyshevPoly;
-        case 'Monic'
+        case 'Monomial'
             poly = @monomial;
         otherwise
             poly = @monomial;
