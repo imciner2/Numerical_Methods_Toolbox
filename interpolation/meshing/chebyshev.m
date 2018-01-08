@@ -23,9 +23,9 @@ function [ chebyNodes ] = chebyshev( n, lb, ub, varargin )
 %   chebyNodes - Array containing the computed nodes
 %
 % Created by: Ian McInerney
-% Created on: January 7, 2017
+% Created on: January 7, 2018
 % Version: 1.0
-% Last Modified: January 7, 2017
+% Last Modified: January 7, 2018
 %
 % Revision History:
 %   1.0 - Initial release
