@@ -1,5 +1,5 @@
-function [ chebyNodes ] = chebyshev( n, lb, ub, varargin )
-%CHEBYSHEV Create the Chebyshev nodes
+function [ chebyNodes ] = chebyshevNodes( n, lb, ub, varargin )
+%CHEBYSHEVNODES Create the Chebyshev nodes
 %
 % Computes the Chebyshev nodes associated with the Chebyshev polynomial
 % of the first order. For multiple dimensions, the roots are computed in
@@ -7,8 +7,8 @@ function [ chebyNodes ] = chebyshev( n, lb, ub, varargin )
 %
 %
 % Usage:
-%   [ chebyNodes ] = chebyshev( n, lb, ub )
-%   [ chebyNodes ] = chebyshev( n, lb, ub, d )
+%   [ chebyNodes ] = chebyshevNodes( n, lb, ub )
+%   [ chebyNodes ] = chebyshevNodes( n, lb, ub, d )
 %
 % Inputs:
 %   n  - The number of roots to compute
