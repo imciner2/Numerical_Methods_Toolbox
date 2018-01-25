@@ -59,8 +59,6 @@ x = sortrows(x, 1);
 ind = linspace(1, m, n+2);
 ind = round(ind);
 
-ind = [1, 3, 9, 14, 16];
-
 % Extract the first points
 points = x(ind, :);
 
