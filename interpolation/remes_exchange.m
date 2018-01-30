@@ -12,14 +12,18 @@ function [ b, E ] = remes_exchange( n, x, varargin )
 %
 %
 % Usage:
-%   [ b, E ] = REMES_EXCHANGE( n, x ):
-%   [ b, E ] = REMES_EXCHANGE( n, x, poly ):
+%   [ b, E ] = REMES_EXCHANGE( n, x );
+%   [ b, E ] = REMES_EXCHANGE( n, x, poly );
+%   [ b, E ] = REMES_EXCHANGE( n, x, poly, MITER );
+%   [ b, E ] = REMES_EXCHANGE( n, x, poly, MITER, origin );
 %
 % Inputs:
-%   n    - The order of the polynomial to use
-%   x    - The datapoints to fit to (each point is a row)
-%   poly - The polynomial type to use. This type must be supported by the
-%          vandermonde function.
+%   n      - The order of the polynomial to use
+%   x      - The datapoints to fit to (each point is a row)
+%   poly   - The polynomial type to use. This type must be supported by the
+%            vandermonde function (default Monomial).
+%   MITER  - The maximum number of iterations to use (default 1000).
+%   origin - Force this value at the origin
 %
 % Outputs:
 %   b - The polynomial coefficients (lowest ordered first)
@@ -30,17 +34,29 @@ function [ b, E ] = remes_exchange( n, x, varargin )
 % Created by: Ian McInerney
 % Created on: January 24, 2018
 % Version: 1.0
-% Last Modified: January 248, 2018
+% Last Modified: January 29, 2018
 %
 % Revision History
 %   1.0 - Initial release
 
 
-%% If a 3rd input exists, it is the polynomial to use
-poly = 'Monomial';
-if (nargin == 3)
-    poly = varargin{1};
+%% Parse the input
+p = inputParser;
+addOptional(p, 'poly', 'Monomial', @ischar);
+addOptional(p, 'MAX_ITER', 1000);
+addOptional(p, 'origin', NaN);
+parse(p, varargin{:});
+
+poly = p.Results.poly;
+MAX_ITER = p.Results.MAX_ITER;
+origin = p.Results.origin;
+
+if ( strcmp(poly, 'SSChebyshev') == 1)
+    van = @(x) vandermonde(x, n+1, poly, min(x(:,1)), max(x(:,1)));
+else
+    van = @(x) vandermonde(x, n+1, poly);
 end
+
 
 
 %% Determine how many points were provided and make sure there were enough
@@ -58,83 +74,80 @@ x = sortrows(x, 1);
 % Take as equally spaced points as possible in the interval
 ind = linspace(1, m, n+2);
 ind = round(ind);
+oldInd = ind;
 
 % Extract the first points
 points = x(ind, :);
+np = length(ind);
 
 
 %% Loop doing the algorithm until complete
 STOP = 0;
+k = 1;
 while (~STOP)
     % Create the linear system matrix for the solver
-    V = vandermonde(points(:,1), n+1, poly);
-    alt = cos( [1:1:n+2]*pi );  % Create a vector of ones that is alternating
+    V = van( points(:,1) );
+    alt = cos( [1:1:np]*pi );  % Create a vector of ones that is alternating
     V = [V, alt'];
     
-    % Solve the linear system matrix
-    a = V\points(:,2);
-    E = a(end);
-    b = a(1:end-1);
+    % Setup the linear system
+    if ( isnan(origin) )
+        % Let the constant parameter be free
+        c = points(:,2);
+        b = [];
+    else
+        % Force a value at the origin of the polynomial
+        % This is equivalent to fixing the constant parameter and removing
+        % it from the other side
+        V = V(:, 2:end);
+        c = points(:,2) - origin.*ones(np, 1);
+        b = origin;
+    end
+    
+    % Solve the linear system and create the coefficient vector
+    a = V\c;
+    b = [b; a(1:end-1)];
+    
+    % This is the approximation error for this try
+    E = abs( a(end) );
     
     % Find the residual error at each point in the set
-    Vp = vandermonde(x(:,1), n+1, poly);
+    Vp = van( x(:,1) );
     P = Vp*b;
     r = P - x(:,2);
     
     % Check to see if the residual errors are all less than E
-    if ( (max(abs(r)) - abs(E)) < 1e-6 )
+    if ( (max(abs(r)) - E) < 1e-4 )
         STOP = 1;
         break;
     end
     
-    % Find the local extrema of the residual not on the ends
-    for ( i = 1:1:(n+2) )
-        curInd = ind(i);
+    ind = findExtrema(r);
         
-         % Find the residual terms that are the closest ones of the same
-         % sign
-         ind(i) = findExtrema(r, curInd);
-    end
-    
-    % See if there are any opposite signs outside the current end points
-    % The right side
-    rightPoints = (ind(end)+1):1:length(r);
-    signChange = abs( sum( sign( r(rightPoints) ) ) );
-    if ( signChange ~= length(rightPoints) )
-        % There is another interval to the right of the end point
-        % Find the largest residual in that interval
-        curInd = length(r);
-        tempInd = findExtrema(r, curInd);
-        
-        % See if that residual is larger than the one at the first point
-        if ( abs(r(tempInd)) > abs(r( ind(1) )) )
-            % If the new point is larger, replace the first point with it
-            ind(1) = tempInd;
-        end
-    end
-    
-    % Sort the indices to make sure they are in order
-    ind = sort(ind);
-    
-    % The left side
-    leftPoints = 1:1:(ind(1));
-    signChange = abs( sum( sign( r(leftPoints) ) ) );
-    if ( signChange ~= length(leftPoints) )
-        % There is another interval to the right of the end point
-        % Find the largest residual in that interval
-        curInd = 1;
-        tempInd = findExtrema(r, curInd);
-        
-        % See if that residual is larger than the one at the first point
-        if ( abs(r(tempInd)) > abs(r( ind(end) )) )
-            % If the new point is larger, replace the first point with it
-            ind(end) = tempInd;
-        end
-    end
-    
     % Sort and extract the points for the next iteration
     ind = sort(ind);
     points = x(ind, :);
+    np = length(ind);
+    
+    % See if the maximium iteratons has been reached
+    if (k == MAX_ITER)
+        warning('remes_exchange:Reached maximum iteration limit');
+        STOP = 1;
+        break;
+    end
+    k = k + 1;
+    
+    % See if the indices have not changed between last time and this time
+    if ( length(oldInd) == length(ind) )
+        if (oldInd == ind)
+            warning('remes_exchange:Reached stationary extrema set without meeting tolerance');
+            STOP = 1;
+            break;
+        end
+    end
+    
+    % Save the new indices for comparison
+    oldInd = ind;
 end
 
 
@@ -142,20 +155,23 @@ end
 
 %% This function is designed to find the extrema of the residual in the interval
 % around the current index
-function [ maxInd ] = findExtrema(r, curInd)
-    % Find the interval to search
-    sgnInd = find( sign(r) == sign( r(curInd) ) );
-    curLoc = find( sgnInd == curInd );
-
-    % Create a list of the neighboring points
-    neighList = [(curInd-curLoc+1):1:(curInd-1),... % Fill in up to the current index
-                  curInd:1:(curInd + length(sgnInd(curLoc:end))-1)]';    % Fill in after the current index
-    neighInd = sgnInd( sgnInd == neighList );
-
-    % Exchange the current point in the interval with the one that has
-    % the largest residual
-    [~, temp] = max( abs(r(neighInd)) );
+function [ ind ] = findExtrema(r)
+    % Find the intervals to search
+    sig = sign(r);
+    intEnd = find( sig(1:end-1) ~= sig(2:end) );
+    intStart = intEnd + 1;
     
-    % Get the index of the extrema to return
-    maxInd = neighInd(temp);
+    % Add the start and end of the array to the values
+    intEnd = [intEnd; length(r)];
+    intStart = [1; intStart];
+    
+    % Iterate over every interval that was found
+    for ( i=1:1:length(intStart) )
+        % Pull out the residuals
+        rInt = r( intStart(i):1:intEnd(i) );
+        
+        % Find the largest one and get its index
+        [~, mr] = max( abs(rInt) );
+        ind(i) = mr + intStart(i) - 1;
+    end
 end
