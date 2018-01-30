@@ -20,11 +20,12 @@ function [ val, T ] = chebyshevPoly( x, n )
 %
 % Created by: Ian McInerney
 % Created on: January 8, 2018
-% Version: 1.0
-% Last Modified: January 8, 2018
+% Version: 1.1
+% Last Modified: January 29, 2018
 %
 % Revision History
 %   1.0 - Initial release
+%   1.1 - Fixed issue with 0th order polynomial
 
 
 %% Determine the dimension of the data and create the matrix
@@ -34,9 +35,14 @@ T = ones(1, n+1);
 inter = zeros(d, n+1);
 
 
-%% Create the initial two orders
+%% Create the initial value
 inter(:,1) = 1;
-inter(:,2) = rx;
+
+
+%% If the order is greater than 0, create the second value
+if (n > 0)
+    inter(:,2) = rx;
+end
 
 
 %% Create the remaining orders
