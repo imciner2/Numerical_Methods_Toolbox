@@ -1,13 +1,13 @@
-function [ val, T ] = chebyshevPoly( x, n )
-%CHEBYSHEVPOLY Evaluate the 1st order Chebyshev polynomial at point x
+function [ val, T ] = legendrePoly( x, n )
+%LEGENDREPOLY Evaluate the legendre polynomial at point x
 %   
-% Compute the Chebyshev polynomial of the first order of degree n at the
-% given point x. If x is multi-dimensional, then the product-Chebyshev
+% Compute the Legendre polynomial of the of degree n at the
+% given point x. If x is multi-dimensional, then the product-Legendre
 % polynomial is computed and returned.
 %
 % Usage:
-%   [ val ] = CHEBYSHEVPOLY( x, n )
-%   [ val, T ] = CHEBYSHEVPOLY( x, n)
+%   [ val ] = LEGENDREPOLY( x, n )
+%   [ val, T ] = LEGENDREPOLY( x, n)
 %
 % Inputs:
 %   x - Point at which to compute the polynomial
@@ -18,16 +18,15 @@ function [ val, T ] = chebyshevPoly( x, n )
 %   T   - Results for all orders up-to and including the one requested
 %
 %
-% see also SSCHEBYSHEVPOLY
+% see also SSLEGENDREPOLY
 %
 % Created by: Ian McInerney
-% Created on: January 8, 2018
-% Version: 1.1
-% Last Modified: January 29, 2018
+% Created on: February 9, 2018
+% Version: 1.0
+% Last Modified: February 9, 2018
 %
 % Revision History
 %   1.0 - Initial release
-%   1.1 - Fixed issue with 0th order polynomial
 
 
 %% Determine the dimension of the data and create the matrix
@@ -49,7 +48,10 @@ end
 
 %% Create the remaining orders
 for (i=2:1:(n))
-    inter(:,i+1) = 2.*rx.*inter(:,i) - inter(:,i-1);
+    t = i-1;
+    a = (2*t+1)/(t+1);
+    b = t/(t+1);
+    inter(:,i+1) = a.*rx.*inter(:,i) - b.*inter(:,i-1);
 end
 
 

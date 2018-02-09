@@ -1,16 +1,15 @@
-function [ val, T ] = sschebyshevPoly( x, n, mi, ma )
-%SSCHEBYSHEVPOLY Evaluate the 1st order shifted and scaled Chebyshev
-%polynomial at point x
+function [ val, T ] = sslegendrePoly( x, n, mi, ma )
+%SSLEGENDREPOLY Evaluate the shifted and scaled Legendre polynomial at point x
 %   
-% Compute the 1D Chebyshev polynomial of the first order of degree n at the
-% given point x. This Chebyshev polynomial will shift the provided
+% Compute the 1D Legendre polynomial of the first order of degree n at the
+% given point x. This Legendre polynomial will shift the provided
 % points such that they are contained in the range [-1,1] (where the
-% Chebyshev polynomial is valid), and scale the polynomial to be 1 at the
+% Legendre polynomial is valid), and scale the polynomial to be 1 at the
 % x=0.
 %
 %
 % Usage:
-%   [ val, T ] = SSCHEBYSHEVPOLY( x, n, mi, ma )
+%   [ val, T ] = SSLEGENDREPOLY( x, n, mi, ma )
 %
 % Inputs:
 %   x  - Point at which to compute the polynomial
@@ -23,16 +22,15 @@ function [ val, T ] = sschebyshevPoly( x, n, mi, ma )
 %   T   - Results for all orders up-to and including the one requested
 %
 %
-% see also CHEBYSHEVPOLY
+% see also LEGENDREPOLY
 %
 % Created by: Ian McInerney
-% Created on: January 29, 2018
-% Version: 1.1
-% Last Modified: January 29, 2018
+% Created on: February 9, 2018
+% Version: 1.0
+% Last Modified: February 9, 2018
 %
 % Revision History
 %   1.0 - Initial release
-%   1.1 - Moved polynomial computation into function call
 
 
 %% Determine the dimension of the data and create the matrix
@@ -51,8 +49,8 @@ dx = -al/rh;
 
 
 %% Create the polynomial values for the numerator and denominator
-[~, inter_num] = chebyshevPoly(nx, n);
-[~, inter_den] = chebyshevPoly(dx, n);
+[~, inter_num] = legendrePoly(nx, n);
+[~, inter_den] = legendrePoly(dx, n);
 
 
 %% Compute the final polynomial values
