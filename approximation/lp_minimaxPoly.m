@@ -1,4 +1,4 @@
-function [ coeff, E ] = lp_minimaxPoly( n, x, varargin )
+function [ coeff, E, p ] = lp_minimaxPoly( n, x, varargin )
 %LP_MINIMAXPOLY Compute the minimax polynomial using the primal LP
 %
 % Compute the minimax polynomial approximation of order n to a discrete set
@@ -13,10 +13,10 @@ function [ coeff, E ] = lp_minimaxPoly( n, x, varargin )
 %
 %
 % Usage:
-%   [ coeff, E ] = LP_MINIMAXPOLY( n, x );
-%   [ coeff, E ] = LP_MINIMAXPOLY( n, x, poly );
-%   [ coeff, E ] = LP_MINIMAXPOLY( n, x, poly, origin );
-%   [ coeff, E ] = LP_MINIMAXPOLY( n, x, poly, origin, alg );
+%   [ coeff, E, p ] = LP_MINIMAXPOLY( n, x );
+%   [ coeff, E, p ] = LP_MINIMAXPOLY( n, x, poly );
+%   [ coeff, E, p ] = LP_MINIMAXPOLY( n, x, poly, origin );
+%   [ coeff, E, p ] = LP_MINIMAXPOLY( n, x, poly, origin, alg );
 %
 % Inputs:
 %   n      - The order of the polynomial to fit with
@@ -35,6 +35,7 @@ function [ coeff, E ] = lp_minimaxPoly( n, x, varargin )
 % Outputs:
 %   coeff - The coefficients for the polynomial
 %   E     - The maximum approximation error over the points
+%   p     - The points from the input set where the error is largest
 %
 %
 % see also LP_MINIMAXPOLY_DUAL
@@ -49,15 +50,15 @@ function [ coeff, E ] = lp_minimaxPoly( n, x, varargin )
 %   1.1 - Updated problem formulation and error handling
 
 %% Parse the input
-p = inputParser;
-addOptional(p, 'poly', 'Monomial', @ischar);
-addOptional(p, 'origin', NaN);
-addOptional(p, 'alg', {});
-parse(p, varargin{:});
+ip = inputParser;
+addOptional(ip, 'poly', 'Monomial', @ischar);
+addOptional(ip, 'origin', NaN);
+addOptional(ip, 'alg', {});
+parse(ip, varargin{:});
 
-poly = p.Results.poly;
-origin = p.Results.origin;
-alg = p.Results.alg;
+poly = ip.Results.poly;
+origin = ip.Results.origin;
+alg = ip.Results.alg;
 
 [nx, ~] = size(x);
 
@@ -122,6 +123,17 @@ else
     warning('lp_minimaxPoly:Failed to find minimax polynomial');
     E = NaN;
 end
+
+
+%% Extract the points where the largest error occurs
+% (e.g. where the constraints are active)
+cval = abs(A_pi*c - b_pi);
+cval = [ [1:1:nx, 1:1:nx]', cval(1:end-1)];
+cval = sortrows(cval, 2);
+
+ind = cval(1:n+1, 1);
+p = x(ind);
+p = sort(p);
 
 end
 
