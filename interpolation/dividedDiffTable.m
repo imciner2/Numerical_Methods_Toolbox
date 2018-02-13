@@ -30,6 +30,11 @@ function F = dividedDiffTable(x, f, n)
 n = n+1;
 
 
+%% Make sure the user supplied the right number of points
+if (n ~= length(x))
+    error('dividedDiffTable:Mismatch between number of interpolation points supplied and desired polynomial order');
+end
+
 %% Create an empty F matrix to return
 F = zeros(n);
 

@@ -4,8 +4,7 @@ function [ val, T ] = sslegendrePoly( x, n, mi, ma )
 % Compute the 1D Legendre polynomial of the first order of degree n at the
 % given point x. This Legendre polynomial will shift the provided
 % points such that they are contained in the range [-1,1] (where the
-% Legendre polynomial is valid), and scale the polynomial to be 1 at the
-% x=0.
+% Legendre polynomial is valid), and scale the polynomial to be 1 at x=0.
 %
 %
 % Usage:
@@ -43,7 +42,7 @@ al = (ma + mi)/2;
 rh = (ma - mi)/2;
 
 
-%% Shift and scale x to create the inputs to the Chebyshev poly function
+%% Shift and scale x to create the inputs to the Legendre poly function
 nx = (rx - al)./rh;
 dx = -al/rh;
 
@@ -57,6 +56,6 @@ dx = -al/rh;
 T = inter_num./inter_den;
 
 
-%% The Chebyshev polynomial's value is the last element of the array
+%% The Legendre polynomial's value is the last element of the array
 val = T(:,end);
 
