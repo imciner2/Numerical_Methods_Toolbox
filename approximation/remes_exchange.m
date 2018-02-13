@@ -16,6 +16,7 @@ function [ b, E ] = remes_exchange( n, x, varargin )
 %   [ b, E ] = REMES_EXCHANGE( n, x, poly );
 %   [ b, E ] = REMES_EXCHANGE( n, x, poly, MITER );
 %   [ b, E ] = REMES_EXCHANGE( n, x, poly, MITER, origin );
+%   [ b, E ] = REMES_EXCHANGE( n, x, poly, MITER, origin, RITER );
 %
 % Inputs:
 %   n      - The order of the polynomial to use
@@ -24,6 +25,8 @@ function [ b, E ] = remes_exchange( n, x, varargin )
 %            vandermonde function (default Monomial).
 %   MITER  - The maximum number of iterations to use (default 1000).
 %   origin - Force this value at the origin
+%   RITER  - The number of iterations to run before restarting (default
+%            500). To disable restarting, pass in 0.
 %
 % Outputs:
 %   b - The polynomial coefficients (lowest ordered first)
@@ -45,15 +48,19 @@ p = inputParser;
 addOptional(p, 'poly', 'Monomial', @ischar);
 addOptional(p, 'MAX_ITER', 1000);
 addOptional(p, 'origin', NaN);
+addOptional(p, 'RES_ITER', 500);
 parse(p, varargin{:});
 
 poly = p.Results.poly;
 MAX_ITER = p.Results.MAX_ITER;
 origin = p.Results.origin;
+RES_ITER = p.Results.RES_ITER;
 
-if ( strcmp(poly, 'SSChebyshev') == 1)
+if ( strncmp(poly, 'SS', 2) == 1)
+    % If the polynomial is a shifted and scaled version
     van = @(x) vandermonde(x, n+1, poly, min(x(:,1)), max(x(:,1)));
 else
+    % Normal polynomial
     van = @(x) vandermonde(x, n+1, poly);
 end
 
@@ -122,10 +129,32 @@ while (~STOP)
         break;
     end
     
-    ind = findExtrema(r);
+    newInd = findExtrema(r);
+    
+    % See if too many indices are being returned
+    numInd = length(newInd);
+    while ( numInd > np )
+        % Choose a random index to remove
+        remInd = round( (numInd-1)*rand(1)+1 );
+        
+        % Create a logical indexer that ignores that index
+        remArr = ones(numInd, 1);
+        remArr(remInd) = 0;
+        
+        % Remove the index
+        newInd = newInd( logical(remArr) );
+        numInd = length(newInd);
+    end
+    
+    % See if too few indices are being returned
+    while ( length(newInd) < np )
+        % If there are not, then choose another point at random to use
+        temp = round( (m-1)*rand(1)+1 );
+        newInd = unique( [newInd temp] );
+    end
         
     % Sort and extract the points for the next iteration
-    ind = sort(ind);
+    ind = sort(newInd);
     points = x(ind, :);
     np = length(ind);
     
@@ -136,6 +165,13 @@ while (~STOP)
         break;
     end
     k = k + 1;
+    
+    % Randomly choose new points if restarting is requested
+    if ( mod(k, RES_ITER) == 0 )
+        ind = randperm(m, np);
+        ind = sort(ind);
+        points = x(ind, 1);
+    end
     
     % See if the indices have not changed between last time and this time
     if ( length(oldInd) == length(ind) )
